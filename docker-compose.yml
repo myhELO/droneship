@@ -1,0 +1,61 @@
+services:
+  db:
+    image: myhelo/myhelo-droneship-db
+    container_name: myhelo-droneship-db
+    environment:
+      MYSQL_ROOT_PASSWORD: myhelo
+      MYSQL_DATABASE: chimera
+    volumes:
+      - myhelo_storage:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  app:
+    hostname: chimera.myhelo.com
+    image: myhelo/myhelo-droneship-app
+    container_name: myhelo-droneship-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+    volumes:
+      - ./droneship_client.ovpn:/etc/openvpn/client.ovpn:ro
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "7879:7879"
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882"
+    restart: unless-stopped
+
+volumes:
+  myhelo_storage:
+
+
+### Typical usage: ###
+#
+# Put this docker-compose.yml file and the droneship_client.ovpn file into a directory named myhelo-droneship and run:
+#
+# docker compose up -d
+# docker ps -a
+#
+# If successful, should see myhelo/myhelo-droneship-app and myhelo/myhelo-droneship-db images running.
+#
+# docker volume ls | grep myhelo
+#
+# Should see droneship_myhelo_storage listed in the volumes
+
+# To stop / remove
+# docker compose down
+# docker compose down --volumes
+
+# Public repositories available at https://hub.docker.com/u/myhelo
