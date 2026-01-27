@@ -1,59 +1,40 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_RAW_BASE="https://raw.githubusercontent.com/myhELO/dronship/main"
-TARGET_DIR="${TARGET_DIR:-myhelo-droneship}"
+REPO_RAW_BASE="https://raw.githubusercontent.com/myhELO/droneship/main"
+COMPOSE_FILE="docker-compose.yml"
 
-echo "== myhELO Droneship Installer (Linux) =="
-echo "Target directory: ${TARGET_DIR}"
+echo "======================================"
+echo " myhELO Droneship Installer (Linux)"
+echo "======================================"
 echo
 
-mkdir -p "${TARGET_DIR}"
-cd "${TARGET_DIR}"
-
-download() {
-  local url="$1"
-  local out="$2"
-
-  if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$url" -o "$out"
-  elif command -v wget >/dev/null 2>&1; then
-    wget -q "$url" -O "$out"
-  else
-    echo "ERROR: curl or wget is required."
-    exit 1
-  fi
-}
-
-echo "Downloading docker-compose.yml ..."
-download "${REPO_RAW_BASE}/docker-compose.yml" "docker-compose.yml"
-
-echo "Downloading .env.example ..."
-download "${REPO_RAW_BASE}/.env.example" ".env.example"
-
-if [ ! -f ".env" ]; then
-  cp .env.example .env
-  echo "Created .env from .env.example"
+# Basic sanity checks
+if ! command -v docker >/dev/null 2>&1; then
+  echo "ERROR: Docker is not installed."
+  echo "Please install Docker before continuing."
+  exit 1
 fi
 
-echo
 if [ ! -f "droneship_client.ovpn" ]; then
-  echo "IMPORTANT: droneship_client.ovpn is missing."
-  echo "Place the customer-specific OpenVPN file here:"
-  echo "  $(pwd)/droneship_client.ovpn"
+  echo "ERROR: droneship_client.ovpn not found."
   echo
-  echo "Then run:"
-  echo "  docker compose up -d"
-  exit 0
+  echo "Please copy your customer-specific VPN file into this directory:"
+  echo "  $(pwd)/droneship_client.ovpn"
+  exit 1
 fi
 
-echo "Starting containers..."
+echo "Downloading docker-compose.yml..."
+curl -fsSL "${REPO_RAW_BASE}/docker-compose.yml" -o "${COMPOSE_FILE}"
+
+echo
+echo "Starting Droneship containers..."
 docker compose up -d
 
 echo
-echo "Done."
-echo "Check status:"
+echo "Droneship startup initiated."
+echo "Check status with:"
 echo "  docker compose ps"
 echo
-echo "App logs:"
+echo "View logs with:"
 echo "  docker logs -f myhelo-droneship-app"

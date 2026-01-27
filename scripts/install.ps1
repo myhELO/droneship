@@ -1,49 +1,42 @@
 $ErrorActionPreference = "Stop"
 
-$RepoRawBase = "https://raw.githubusercontent.com/myhELO/dronship/main"
-$TargetDir = $env:TARGET_DIR
-if ([string]::IsNullOrWhiteSpace($TargetDir)) { $TargetDir = "myhelo-droneship" }
+$RepoRawBase = "https://raw.githubusercontent.com/myhELO/droneship/main"
+$ComposeFile = "docker-compose.yml"
 
-Write-Host "== myhELO Droneship Installer (Windows) =="
-Write-Host "Target directory: $TargetDir"
+Write-Host "======================================"
+Write-Host " myhELO Droneship Installer (Windows)"
+Write-Host "======================================"
 Write-Host ""
 
-New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
-Set-Location $TargetDir
-
-function Download-File($Url, $OutFile) {
-  Invoke-WebRequest -Uri $Url -UseBasicParsing -OutFile $OutFile
+# Sanity checks
+if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+  Write-Host "ERROR: Docker is not installed."
+  Write-Host "Please install Docker Desktop before continuing."
+  exit 1
 }
 
-Write-Host "Downloading docker-compose.yml ..."
-Download-File "$RepoRawBase/docker-compose.yml" "docker-compose.yml"
-
-Write-Host "Downloading .env.example ..."
-Download-File "$RepoRawBase/.env.example" ".env.example"
-
-if (-not (Test-Path ".env")) {
-  Copy-Item ".env.example" ".env"
-  Write-Host "Created .env from .env.example"
-}
-
-Write-Host ""
 if (-not (Test-Path "droneship_client.ovpn")) {
-  Write-Host "IMPORTANT: droneship_client.ovpn is missing."
-  Write-Host "Place the customer-specific OpenVPN file here:"
-  Write-Host "  $((Get-Location).Path)\droneship_client.ovpn"
+  Write-Host "ERROR: droneship_client.ovpn not found."
   Write-Host ""
-  Write-Host "Then run:"
-  Write-Host "  docker compose up -d"
-  exit 0
+  Write-Host "Please copy your customer-specific VPN file into this directory:"
+  Write-Host "  $((Get-Location).Path)\droneship_client.ovpn"
+  exit 1
 }
 
-Write-Host "Starting containers..."
+Write-Host "Downloading docker-compose.yml..."
+Invoke-WebRequest `
+  -Uri "$RepoRawBase/docker-compose.yml" `
+  -UseBasicParsing `
+  -OutFile $ComposeFile
+
+Write-Host ""
+Write-Host "Starting Droneship containers..."
 docker compose up -d
 
 Write-Host ""
-Write-Host "Done."
-Write-Host "Check status:"
+Write-Host "Droneship startup initiated."
+Write-Host "Check status with:"
 Write-Host "  docker compose ps"
 Write-Host ""
-Write-Host "App logs:"
+Write-Host "View logs with:"
 Write-Host "  docker logs -f myhelo-droneship-app"

@@ -114,12 +114,12 @@ cd myhelo-droneship
 
 #### Linux (one command)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/myhELO/dronship/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/myhELO/droneship/main/scripts/install.sh | bash
 ```
 
 #### Windows PowerShell (one command)
 ```powershell
-iwr -useb https://raw.githubusercontent.com/myhELO/dronship/main/scripts/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/myhELO/droneship/main/scripts/install.ps1 | iex
 ```
 
 The installer will:
@@ -152,6 +152,63 @@ docker logs myhelo-droneship-app --tail 200
 ```
 
 If successful, you will see the containers running and a **READY** message in the application logs.
+
+---
+
+## What to Expect on First Startup
+
+On the first run, Docker will download the Droneship images, create a network and volume, and initialize the database. This may take **1–3 minutes**, depending on internet speed and disk performance.
+
+### Example output
+```bash
+docker compose up -d
+```
+
+```text
+[+] up 38/38
+ ✔ Image myhelo/myhelo-droneship-db  Pulled        24.0s
+ ✔ Image myhelo/myhelo-droneship-app Pulled        55.5s
+ ✔ Network docker_default            Created        0.1s
+ ✔ Volume docker_myhelo_storage      Created        0.0s
+ ✔ Container myhelo-droneship-db     Healthy       18.9s
+ ✔ Container myhelo-droneship-app    Created        0.1s
+```
+
+Once the containers are running, you can view application logs:
+
+```bash
+docker logs myhelo-droneship-app
+```
+
+You should see output similar to:
+
+```text
+INFO supervisord started with pid 1
+INFO spawned: 'apache'
+INFO spawned: 'chimera'
+INFO spawned: 'droneship_status'
+INFO spawned: 'openvpn'
+INFO spawned: 'sshd'
+INFO success: apache entered RUNNING state
+INFO success: openvpn entered RUNNING state
+INFO success: chimera entered RUNNING state
+
+======================================
+
+   myhELO Droneship is READY ✅
+
+======================================
+```
+
+When you see **“Droneship is READY”**, the appliance is fully operational.
+
+### If startup takes longer than expected
+
+- Database initialization on first run may take extra time, especially on Windows.
+- You can monitor database logs with:
+```bash
+docker logs myhelo-droneship-db
+```
 
 ---
 
