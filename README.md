@@ -276,6 +276,8 @@ If the any system on the local network will be sending messages to the droneship
 ### Database startup takes a long time
 On first run, MySQL initialization may take several minutes, especially on slower devices.
 
+Do not change the environment variables within the docker-compose.yml file as these are used during initial setup of the container.
+
 Check logs:
 ```bash
 docker logs myhelo-droneship-db --tail 200
