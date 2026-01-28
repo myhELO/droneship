@@ -304,8 +304,8 @@ The myhELO droneship applicance configuration was designed to limit security lia
 - The application container exposes no default service ports (http, ssh, etc) to the local network at any time.
 - The 4 available socket listener ports (7879-7881) are not enabled until myhELO support works with the customer to do so.
 - The customer is recommended to ensure that the host OS is also firewalled appropriately.  
--  For internet access, the droneship only needs outbound access to udp port 1194 (to mothership.myhelo.com)
--  For local network access, the droneship only needs outbound IP access to the devices it will send data to and inbound traffic to the droneship will need to be opened on the local host firewall.
+  - For internet access, the droneship only needs outbound access to udp port 1194 (to mothership.myhelo.com)
+  - For local network access, the droneship only needs outbound IP access to the devices it will send data to and inbound traffic to the droneship will need to be opened on the local host firewall.
 
 ---
 
