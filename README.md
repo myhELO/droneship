@@ -295,6 +295,20 @@ docker logs myhelo-droneship-app --tail 200
 
 ---
 
+## Security considerations
+
+The myhELO droneship applicance configuration was designed to limit security liablities.  
+
+- The two containers run on an isoalted docker network, ensuring that the database and appliance aren't listening or accessible to any local devices.  
+- The separate database container is only accessible to the application container via the private docker network created at startup.
+- The application container exposes no default service ports (http, ssh, etc) to the local network at any time.
+- The 4 available socket listener ports (7879-7881) are not enabled until myhELO support works with the customer to do so.
+- The customer is recommended to ensure that the host OS is also firewalled appropriately.  
+-  For internet access, the droneship only needs outbound access to udp port 1194 (to mothership.myhelo.com)
+-  For local network access, the droneship only needs outbound IP access to the devices it will send data to and inbound traffic to the droneship will need to be opened on the local host firewall.
+
+---
+
 ## Support
 
 When contacting myhELO support, please provide:
