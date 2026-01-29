@@ -4,7 +4,7 @@
 
 The **myhELO Droneship Appliance** is a secure, preconfigured interface engine used to exchange HL7 messages (ADT, SIU, ORM/ORU) and other healthcare-related data between customer environments and the myhELO platform.
 
-The Droneship runs locally at the customer site and establishes a **minimal VPN connection** to myhELO's data center, eliminating the need for a traditional static 'site-to-site' IPSEC vpn.
+The Droneship runs locally at the customer site and establishes a **minimal, outbound-only VPN connection** to myhELO's data center, eliminating the need for a traditional static 'site-to-site' IPSEC vpn.
 
 This repository provides:
 - A ready-to-use `docker-compose.yml`
@@ -12,6 +12,12 @@ This repository provides:
 - Clear manual install instructions if scripts are not desired
 
 Each customer is issued a **customer-specific OpenVPN client file** (`droneship_client.ovpn`) by myhELO.
+
+---
+
+## Who is this for?
+
+This guide is intended for customer IT administrators or system integrators responsible for local interface infrastructure.
 
 ---
 
@@ -23,7 +29,7 @@ Before installing the Droneship, you must have:
 One of the following, connected to the internet:
 
 - **Windows Server** (2019 / 2022 recommended)
-- **Windows OS** (Traditional windows device), such as:
+- **Windows OS** (traditional Windows device), such as:
   - NUC device w Windows 11
   - Repurposed device running Windows
 - **Linux VM or host**, such as:
@@ -46,8 +52,8 @@ Docker **must** be installed before continuing.
 - Docker Compose v2 (`docker compose ...`)
 - On Windows: Docker Desktop configured for **Linux containers**
 
-### 3. Static IP address
-The device running the docker containers should have an assigned or static set IP Address.
+### 3. Static IP address (local, not public)
+The device running the docker containers should have an assigned or static set IP Address.  This address does not need to be publicly accessible.
 
 ---
 
@@ -83,9 +89,9 @@ The Droneship runs as two Docker containers:
   - OpenVPN client
   - Supervisor-managed services
 
-The application container waits for the database to be fully ready before starting.
+The application container waits for the database container to become healthy before starting services.
 
-Docker uses **bridge networking** by default. Inbound access is provided via explicit port mappings.
+Docker uses **bridge networking** by default, with an isolated internal network for the Droneship containers. Inbound access is provided via explicit port mappings.
 
 ---
 
@@ -151,7 +157,7 @@ docker compose ps
 docker logs myhelo-droneship-app --tail 200
 ```
 
-If successful, you will see the containers running and a **READY** message in the application logs.
+If successful, you will see the containers running and a **READY** message in the application logs indicating successful startup.
 
 ---
 
@@ -258,14 +264,14 @@ docker compose up -d
 
 ## Optional: Network Ports
 
-The myhELO droneship appliance requires no dedicated port mappings unless messages will be sent to the droneship via dedicated socket connections (eg: ORM result HL7 messages). The following TCP ports are pre-configured and exposed by default, but are not listening by default.
+The myhELO Droneship appliance requires no dedicated port mappings unless messages will be sent to the Droneship via dedicated socket connections (eg: ORM result HL7 messages). The following TCP ports are pre-configured and exposed by default, but are not listening by default.
 
 - **7879**
 - **7880**
 - **7881**
 - **7882**
 
-If the any system on the local network will be sending messages to the droneship via TCP/IP socket sconnection, these ports must be allowed on:
+If the any system on the local network will be sending messages to the Droneship via TCP/IP socket connection, these ports must be allowed on:
 - The host firewall
 - Any upstream firewall or security group
 
@@ -297,15 +303,15 @@ docker logs myhelo-droneship-app --tail 200
 
 ## Security considerations
 
-The myhELO droneship applicance configuration was designed to limit security liablities.  
+The myhELO Droneship appliance configuration was designed to limit security liabilities.  
 
-- The two containers run on an isoalted docker network, ensuring that the database and appliance aren't listening or accessible to any local devices.  
+- The two containers run on an isolated docker network, ensuring that the database and appliance aren't listening or accessible to any local devices.  
 - The separate database container is only accessible to the application container via the private docker network created at startup.
 - The application container exposes no default service ports (http, ssh, etc) to the local network at any time.
-- The 4 available socket listener ports (7879-7881) are not enabled until myhELO support works with the customer to do so.
+- The 4 available socket listener ports (7879-7882) are not enabled until myhELO support works with the customer to do so.
 - The customer is recommended to ensure that the host OS is also firewalled appropriately.  
-  - For internet access, the droneship only needs outbound access to udp port 1194 (to mothership.myhelo.com)
-  - For local network access, the droneship only needs outbound IP access to the devices it will send data to and inbound traffic to the droneship will need to be opened on the local host firewall.
+  - For internet access, the Droneship only needs outbound access to udp port 1194 (to mothership.myhelo.com)
+  - For local network access, the Droneship only needs outbound IP access to the devices it will send data to and inbound traffic to the Droneship host will need to be opened on the local host firewall.
 
 ---
 
