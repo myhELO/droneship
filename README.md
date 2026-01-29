@@ -25,32 +25,97 @@ This guide is intended for customer IT administrators or system integrators resp
 
 Before installing the Droneship, you must have:
 
-### 1. A Base Operating System
-One of the following, connected to the internet:
+### 1. A Base Operating System Host
 
-- **Windows Server** (2019 / 2022 recommended)
-- **Windows OS** (traditional Windows device), such as:
-  - NUC device w Windows 11
-  - Repurposed device running Windows
-- **Linux VM or host**, such as:
-  - Ubuntu
-  - Debian
-  - openSUSE
+As a best practice, the Droneship should run on a **dedicated device or a dedicated virtual machine**, separate from other production workloads.
+
+Common deployment options include:
+
+- **Linux VM or host** (recommended):
+  - Ubuntu / Debian
   - RHEL / Rocky / Alma
+  - openSUSE
 
-Minimum system requirements:
+- **Windows OS** (traditional Windows device or VM)
+- **Windows Server** (2019 / 2022 recommended)
+
+#### Windows Server Best Practice
+
+Windows Server includes **Hyper-V**, which allows it to act as a virtualization host.
+
+The most common deployment pattern is:
+- Enable Hyper-V
+- Create a small **Linux virtual machine**
+- Install Docker Engine and Docker Compose inside the VM
+- Run the Droneship containers inside the VM
+
+Running Docker Desktop directly on Windows Server is supported, but typically reserved for single-purpose servers.
+
+#### Microsoft Azure
+
+In Azure environments, the recommended deployment is:
+- Create a **Linux virtual machine**
+- Install Docker Engine and Docker Compose
+- Deploy the Droneship containers normally
+
+Azure container orchestration platforms (AKS, Container Apps) are **not recommended**.
+
+---
+
+### Minimum System Requirements
+
 - **10 GB free disk space**
 - **2 GB RAM** (4 GB recommended)
 - Reliable outbound internet access
 
-> The Droneship may run on a physical server or a virtual instance.
+---
 
 ### 2. Docker Installed
+
 Docker **must** be installed before continuing.
 
+Required components:
 - Docker Engine
-- Docker Compose v2 (`docker compose ...`)
+- Docker Compose v2 (`docker compose`)
 - On Windows: Docker Desktop configured for **Linux containers**
+
+#### Example Docker Installation (Linux)
+
+**Ubuntu / Debian**
+```bash
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://get.docker.com | sudo bash
+```
+
+**RHEL / Rocky / Alma**
+```bash
+sudo dnf install -y dnf-utils
+sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo systemctl enable --now docker
+```
+
+**openSUSE**
+```bash
+sudo zypper install -y docker docker-compose
+sudo systemctl enable --now docker
+```
+
+After installation, verify:
+```bash
+docker version
+docker compose version
+```
+
+#### Example Docker Installation (Windows)
+
+If running Docker directly on Windows, install Docker Desktop following the instructions provided by Docker.
+
+https://docs.docker.com/desktop/setup/install/windows-install/
+
+---
 
 ### 3. Static IP address (local, not public)
 The device running the docker containers should have an assigned or static set IP Address.  This address does not need to be publicly accessible.
