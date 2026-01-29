@@ -150,27 +150,13 @@ than:
 
 ---
 
-## The Mental Model That Helps
-
-> **Droneship is a courier, not a door.**
-
-It:
-
-- Collects data locally
-- Leaves the network on its own
-- Delivers data securely to myhELO
-- Never allows external access into your environment
-
----
-
 ## Summary
 
 The Droneship appliance exists to provide:
 
-- Secure, outbound-only connectivity
+- Secure, minimal connectivity between the Organization's network and the myhELO Platform
 - Compatibility with legacy healthcare systems
 - Operational reliability
 - Reduced security and compliance risk
 
 It is a deliberate architectural choice designed to meet the realities of real-world healthcare IT environments while keeping customer networks protected.
-
