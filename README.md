@@ -172,6 +172,18 @@ cp droneship_client.ovpn myhelo-droneship/
 cd myhelo-droneship
 ```
 
+*SELinux (openSUSE) special instructions
+
+If your openSUSE host is running SELinux (check with `getenforce` — it will print `Enforcing`), containers may be blocked from accessing host files such as the OpenVPN client file. Update the SELinux file type for the VPN file so Docker containers can read it:
+
+```bash
+getenforce
+# if output is "Enforcing", run the following command within the myhelo-droneship folder:
+chcon -t container_file_t droneship_client.ovpn
+```
+
+Run the `chcon` command from inside your working folder (for example `myhelo-droneship`) where `droneship_client.ovpn` lives.
+
 **Windows (PowerShell)**
 ```powershell
 mkdir myhelo-droneship
@@ -183,9 +195,19 @@ cd myhelo-droneship
 
 ### Step 2: Run the installer
 
+> Important: run the Linux installer as root (or prefix the command with `sudo`) so the script can load kernel modules and write system files if required.
+
 #### Linux (one command)
+You can run the installer either as root or using `sudo`:
+
+As root:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/myhELO/droneship/main/scripts/install.sh | bash
+```
+
+With `sudo`:
+```bash
+curl -fsSL https://raw.githubusercontent.com/myhELO/droneship/main/scripts/install.sh | sudo bash
 ```
 
 #### Windows PowerShell (one command)
