@@ -152,6 +152,7 @@ The Droneship runs as two Docker containers:
   - Chimera engine
   - Apache / PHP
   - OpenVPN client
+  - myhELO DICOM Gateway (Modality Worklist and image storage for imaging devices)
   - Supervisor-managed services
 
 The application container waits for the database container to become healthy before starting services.
@@ -279,12 +280,14 @@ You should see output similar to:
 INFO supervisord started with pid 1
 INFO spawned: 'apache'
 INFO spawned: 'chimera'
+INFO spawned: 'charon'
 INFO spawned: 'droneship_status'
 INFO spawned: 'openvpn'
 INFO spawned: 'sshd'
 INFO success: apache entered RUNNING state
 INFO success: openvpn entered RUNNING state
 INFO success: chimera entered RUNNING state
+INFO success: charon entered RUNNING state
 
 ======================================
 
@@ -347,20 +350,39 @@ docker compose pull
 docker compose up -d
 ```
 
+> **`docker compose pull` updates the images, not `docker-compose.yml`.** When a
+> release changes the compose file itself (for example, the published ports), download
+> the new `docker-compose.yml` from this repository into your working folder first, or
+> re-run the installer from Step 2. Your `droneship_client.ovpn` and the database volume
+> are kept.
+
 ---
 
 ## Optional: Network Ports
 
-The myhELO Droneship appliance requires no dedicated port mappings unless messages will be sent to the Droneship via dedicated socket connections (eg: ORM result HL7 messages). The following TCP ports are pre-configured and exposed by default, but are not listening by default.
+The myhELO Droneship appliance requires no dedicated port mappings unless a system on the local network will connect to it — for example to send messages over a socket connection (eg: ORM result HL7 messages), or an imaging device using the myhELO DICOM Gateway. Twenty TCP ports, **7879–7898**, are pre-configured and exposed by default, but nothing listens on them until myhELO support enables it with you.
 
-- **7879**
-- **7880**
-- **7881**
-- **7882**
+| Port(s) | Used for |
+|---|---|
+| **7879–7897** | Socket listeners (eg: HL7), assigned by myhELO support as needed |
+| **7898** | **myhELO DICOM Gateway** — Modality Worklist and image storage for imaging devices |
 
-If the any system on the local network will be sending messages to the Droneship via TCP/IP socket connection, these ports must be allowed on:
+If any system on the local network will connect to the Droneship, its port must be allowed on:
 - The host firewall
 - Any upstream firewall or security group
+
+### myhELO DICOM Gateway (imaging devices)
+
+Imaging devices (x-ray, ultrasound, endoscopy towers, and similar) can query the Droneship for their worklist of scheduled patients and send their images back to myhELO. myhELO support sets up each device with you; on the device, configure the worklist and storage destination as:
+
+| Setting | Value |
+|---|---|
+| Host / IP | the Droneship host's IP address |
+| Port | **7898** |
+| Called AE title (the Droneship) | `MYHELO_DICOM_SCP` |
+| Calling AE title (the device itself) | the device's AE title as registered with myhELO support |
+
+The gateway only answers devices myhELO support has registered. Allow port 7898 on the host firewall **from the imaging devices' addresses only**.
 
 ---
 
@@ -395,7 +417,8 @@ The myhELO Droneship appliance configuration was designed to limit security liab
 - The two containers run on an isolated docker network, ensuring that the database and appliance aren't listening or accessible to any local devices.  
 - The separate database container is only accessible to the application container via the private docker network created at startup.
 - The application container exposes no default service ports (http, ssh, etc) to the local network at any time.
-- The 4 available socket listener ports (7879-7882) are not enabled until myhELO support works with the customer to do so.
+- The 20 available ports (7879-7898) — socket listeners and the myhELO DICOM Gateway on 7898 — are not enabled until myhELO support works with the customer to do so.
+- The myhELO DICOM Gateway answers only imaging devices registered with myhELO support; open port 7898 on the host firewall only to those devices.
 - The customer is recommended to ensure that the host OS is also firewalled appropriately.  
   - For internet access, the Droneship only needs outbound access to udp port 1194 (to mothership.myhelo.com)
   - For local network access, the Droneship only needs outbound IP access to the devices it will send data to and inbound traffic to the Droneship host will need to be opened on the local host firewall.
@@ -413,6 +436,10 @@ When contacting myhELO support, please provide:
 - Database logs:
   ```bash
   docker logs myhelo-droneship-db --tail 200
+  ```
+- myhELO DICOM Gateway logs (imaging devices only):
+  ```bash
+  docker exec myhelo-droneship-app tail -n 200 /var/log/supervisor/charon.log
   ```
 
 Docker images are published at:

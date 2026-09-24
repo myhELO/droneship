@@ -30,11 +30,10 @@ services:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
+    # 20 ports, 7879-7898. Socket listeners use them from the bottom; 7898 is the
+    # myhELO DICOM Gateway. Nothing listens until myhELO support enables it.
     ports:
-      - "7879:7879"
-      - "7880:7880"
-      - "7881:7881"
-      - "7882:7882"
+      - "7879-7898:7879-7898"
     restart: unless-stopped
 
 volumes:
